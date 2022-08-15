@@ -1,28 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"io"
+	"encoding/json"
+	"log"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	port := ":3333"
-	http.HandleFunc("/users", getUsers)
-	http.HandleFunc("/posts", getPosts)
 
-	err := http.ListenAndServe(port, nil)
+	router := mux.NewRouter()
 
-	if err != nil {
-		fmt.Println(err)
+	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	})
+
+	srv := &http.Server{
+		Handler: router,
+		Addr:    "127.0.0.1:8000",
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
 	}
+
+	log.Fatal(srv.ListenAndServe())
+
 }
 
-func getUsers(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /user request\n")
-	io.WriteString(w, "This is my user endpoint!\n")
-}
-func getPosts(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /posts request\n")
-	io.WriteString(w, "This is my post endpoint!\n")
+func sendResponse(w http.ResponseWriter, request *http.Request) {
+	// an example API handler
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
