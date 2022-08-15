@@ -1,27 +1,29 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ncostamagna/g_wc_ex/internal/user"
 )
 
 func main() {
 
 	router := mux.NewRouter()
 
+	userEnd := user.MakeEndpoints()
 	// si le pegamos por diferetes metodos funciona
-	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(6 * time.Second)
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
-
-	router.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
+	router.HandleFunc("/users", userEnd.Create).Methods("POST")
+	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
+	router.HandleFunc("/users", userEnd.Get).Methods("GET")
+	router.HandleFunc("/users", userEnd.Update).Methods("PATCH")
+	router.HandleFunc("/users", userEnd.Delete).Methods("DELETE")
+	/*
+		router.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+		})*/
 
 	srv := &http.Server{
 		Handler: router,
