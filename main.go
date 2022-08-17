@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/ncostamagna/g_wc_ex/internal/user"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -17,7 +20,34 @@ func main() {
 	// sin archivo y sin prefijo
 	l := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
 
-	userRepo := user.NewRepo(l)
+	dsn := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		"root",
+		"root",
+		"127.0.0.1",
+		"3320",
+		"g_wc_ex_borrar")
+	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db = db.Debug()
+
+	/*if err != nil {
+		return nil, "", l.CatchError(err)
+	}
+
+	if os.Getenv("DATABASE_DEBUG") == "true" {
+		db = db.Debug()
+	}
+
+	if os.Getenv("DATABASE_MIGRATE") == "true" {
+		// Migrate the schema
+		err := db.AutoMigrate(&domain.ProductEnrollment{})
+		_ = l.CatchError(err)
+		err = db.AutoMigrate(&domain.CommissionEnrollment{})
+		_ = l.CatchError(err)
+	}*/
+
+	_ = db.AutoMigrate(&user.User{})
+
+	userRepo := user.NewRepo(db, l)
 	userSrv := user.NewService(l, userRepo)
 	userEnd := user.MakeEndpoints(userSrv)
 
