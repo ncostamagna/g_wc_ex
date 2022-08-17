@@ -13,13 +13,16 @@ func main() {
 
 	router := mux.NewRouter()
 
-	userEnd := user.MakeEndpoints()
-	// si le pegamos por diferetes metodos funciona
+	// sin archivo y sin prefijo
+	l := log.New(nil, "", log.LstdFlags|log.Lshortfile)
+	userSrv := user.NewService(l)
+	userEnd := user.MakeEndpoints(userSrv)
+
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")
 	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
-	router.HandleFunc("/users", userEnd.Get).Methods("GET")
-	router.HandleFunc("/users", userEnd.Update).Methods("PATCH")
-	router.HandleFunc("/users", userEnd.Delete).Methods("DELETE")
+	router.HandleFunc("/users/{id}", userEnd.Get).Methods("GET")
+	router.HandleFunc("/users/{id}", userEnd.Update).Methods("PATCH")
+	router.HandleFunc("/users/{id}", userEnd.Delete).Methods("DELETE")
 	/*
 		router.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]bool{"ok": true})
