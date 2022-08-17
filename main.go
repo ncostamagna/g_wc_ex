@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -14,8 +15,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// sin archivo y sin prefijo
-	l := log.New(nil, "", log.LstdFlags|log.Lshortfile)
-	userSrv := user.NewService(l)
+	l := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+
+	userRepo := user.NewRepo(l)
+	userSrv := user.NewService(l, userRepo)
 	userEnd := user.MakeEndpoints(userSrv)
 
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")

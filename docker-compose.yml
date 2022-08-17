@@ -1,0 +1,21 @@
+version: "3.5"
+services:
+  g-wc-ex-db:
+    platform: linux/amd64
+    container_name: g_wc_ex_mysql
+    build:
+      context: ./.dockers/mysql
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: g_wc_ex_borrar
+    ports:
+      - "3320:3306"
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    volumes:
+      - ./.dockers/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+

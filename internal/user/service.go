@@ -12,13 +12,15 @@ type Service interface {
 }
 
 type service struct {
-	log *log.Logger
+	log  *log.Logger
+	repo Repository
 }
 
 //NewService is a service handler
-func NewService(l *log.Logger) Service {
+func NewService(l *log.Logger, repo Repository) Service {
 	return &service{
-		log: l,
+		log:  l,
+		repo: repo,
 	}
 }
 
@@ -30,6 +32,11 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 		Email:     email,
 		Phone:     phone,
 	}
-	log.Println("Create user service")
+	s.log.Println("Create user service")
+
+	if err := s.repo.Create(user); err != nil {
+		s.log.Println(err)
+	}
+
 	return user, nil
 }
