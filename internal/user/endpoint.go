@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 //Endpoints struct
@@ -77,15 +79,32 @@ func makeCreateEndpoint(s Service) Controller {
 
 func makeGetEndpoint(s Service) Controller {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("get user")
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+
+		path := mux.Vars(r)
+		id := path["id"]
+
+		user, err := s.Get(id)
+		if err != nil {
+			w.WriteHeader(404)
+			json.NewEncoder(w).Encode(ErrorRes{"user doesn't exist"})
+			return
+		}
+
+		json.NewEncoder(w).Encode(user)
 	}
 }
 
 func makeGetAllEndpoint(s Service) Controller {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("getall user")
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+
+		users, err := s.GetAll()
+		if err != nil {
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(ErrorRes{err.Error()})
+			return
+		}
+
+		json.NewEncoder(w).Encode(users)
 	}
 }
 
