@@ -109,7 +109,8 @@ func makeGetEndpoint(s Service) Controller {
 func makeGetAllEndpoint(s Service) Controller {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		users, err := s.GetAll()
+		v := r.URL.Query()
+		users, err := s.GetAll(Filters{FirstName: v.Get("first_name"), LastName: v.Get("last_name")})
 		if err != nil {
 			w.WriteHeader(400)
 			json.NewEncoder(w).Encode(&Response{Status: 400, Err: err.Error()})
