@@ -2,7 +2,10 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -50,9 +53,53 @@ type (
 	}
 
 	Meta struct {
+		Page       int `json:"page"`
+		PerPage    int `json:"per_page"`
+		PageCount  int `json:"page_count"`
 		TotalCount int `json:"total_count"`
 	}
 )
+
+func newMeta(page, perPage, total int) (*Meta, error) {
+	if perPage <= 0 {
+		var err error
+		perPage, err = strconv.Atoi(os.Getenv("PAGINATOR_LIMIT_DEFAULT"))
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	pageCount := 0
+	if total >= 0 {
+		// total 75, per page 25
+		// sin el -1 me va a mostrar 4 paginas en lugar de 3
+		pageCount = (total + perPage - 1) / perPage
+		if page > pageCount {
+			page = pageCount
+		}
+	}
+
+	if page < 1 {
+		page = 1
+	}
+
+	return &Meta{
+		Page:       page,
+		PerPage:    perPage,
+		TotalCount: total,
+		PageCount:  pageCount,
+	}, nil
+}
+
+func (p *Meta) Offset() int {
+	fmt.Println(p)
+	return (p.Page - 1) * p.PerPage
+}
+
+func (p *Meta) Limit() int {
+	return p.PerPage
+}
 
 //MakeEndpoints handler endpoints
 func MakeEndpoints(s Service) Endpoints {
@@ -126,6 +173,9 @@ func makeGetAllEndpoint(s Service) Controller {
 			LastName:  v.Get("last_name"),
 		}
 
+		limit, _ := strconv.Atoi(v.Get("limit"))
+		page, _ := strconv.Atoi(v.Get("page"))
+
 		count, err := s.Count(filters)
 		if err != nil {
 			w.WriteHeader(500)
@@ -133,16 +183,21 @@ func makeGetAllEndpoint(s Service) Controller {
 			return
 		}
 
-		users, err := s.GetAll(filters)
+		meta, err := newMeta(page, limit, count)
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(&Response{Status: 500, Err: err.Error()})
+			return
+		}
+		fmt.Println(meta)
+
+		users, err := s.GetAll(filters, meta.Offset(), meta.Limit())
 		if err != nil {
 			w.WriteHeader(400)
 			json.NewEncoder(w).Encode(&Response{Status: 400, Err: err.Error()})
 			return
 		}
 
-		meta := &Meta{
-			TotalCount: count,
-		}
 		json.NewEncoder(w).Encode(&Response{Status: 200, Data: users, Meta: meta})
 	}
 }
