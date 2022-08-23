@@ -36,6 +36,12 @@ type (
 	ErrorRes struct {
 		Error string `json:"error"`
 	}
+
+	Response struct {
+		Status int         `json:"status"`
+		Data   interface{} `json:"data,omitempty"`
+		Err    string      `json:"error,omitempty"`
+	}
 )
 
 //MakeEndpoints handler endpoints
@@ -56,30 +62,30 @@ func makeCreateEndpoint(s Service) Controller {
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"invalid request format"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "invalid request format"})
 			return
 		}
 
 		if req.FirstName == "" {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"first name is required"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "first name is required"})
 			return
 		}
 
 		if req.LastName == "" {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"last name is required"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "last name is required"})
 			return
 		}
 
 		user, err := s.Create(req.FirstName, req.LastName, req.Email, req.Phone)
 		if err != nil {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{err.Error()})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: err.Error()})
 			return
 		}
 
-		json.NewEncoder(w).Encode(user)
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: user})
 	}
 }
 
@@ -92,11 +98,11 @@ func makeGetEndpoint(s Service) Controller {
 		user, err := s.Get(id)
 		if err != nil {
 			w.WriteHeader(404)
-			json.NewEncoder(w).Encode(ErrorRes{"user doesn't exist"})
+			json.NewEncoder(w).Encode(&Response{Status: 404, Err: "user doesn't exist"})
 			return
 		}
 
-		json.NewEncoder(w).Encode(user)
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: user})
 	}
 }
 
@@ -106,11 +112,11 @@ func makeGetAllEndpoint(s Service) Controller {
 		users, err := s.GetAll()
 		if err != nil {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{err.Error()})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: err.Error()})
 			return
 		}
 
-		json.NewEncoder(w).Encode(users)
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: users})
 	}
 }
 
@@ -120,19 +126,19 @@ func makeUpdateEndpoint(s Service) Controller {
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"invalid request format"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "invalid request format"})
 			return
 		}
 
 		if req.FirstName != nil && *req.FirstName == "" {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"first name is required"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "first name is required"})
 			return
 		}
 
 		if req.LastName != nil && *req.LastName == "" {
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(ErrorRes{"last name is required"})
+			json.NewEncoder(w).Encode(&Response{Status: 400, Err: "last name is required"})
 			return
 		}
 
@@ -141,11 +147,11 @@ func makeUpdateEndpoint(s Service) Controller {
 
 		if err := s.Update(id, req.FirstName, req.LastName, req.Email, req.Phone); err != nil {
 			w.WriteHeader(404)
-			json.NewEncoder(w).Encode(ErrorRes{"user doesn't exist"})
+			json.NewEncoder(w).Encode(&Response{Status: 404, Err: "user doesn't exist"})
 			return
 		}
 
-		json.NewEncoder(w).Encode(map[string]string{"data": "success"})
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: "success"})
 	}
 }
 
@@ -157,10 +163,10 @@ func makeDeleteEndpoint(s Service) Controller {
 
 		if err := s.Delete(id); err != nil {
 			w.WriteHeader(404)
-			json.NewEncoder(w).Encode(ErrorRes{"user doesn't exist"})
+			json.NewEncoder(w).Encode(&Response{Status: 404, Err: "user doesn't exist"})
 			return
 		}
 
-		json.NewEncoder(w).Encode(map[string]string{"data": "success"})
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: "success"})
 	}
 }
