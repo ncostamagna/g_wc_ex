@@ -26,6 +26,11 @@ type (
 		Phone     string `json:"phone"`
 	}
 
+	GetAllReq struct {
+		FirstName string
+		LastName  string
+	}
+
 	UpdateReq struct {
 		FirstName *string `json:"first_name"`
 		LastName  *string `json:"last_name"`
@@ -41,6 +46,11 @@ type (
 		Status int         `json:"status"`
 		Data   interface{} `json:"data,omitempty"`
 		Err    string      `json:"error,omitempty"`
+		Meta   *Meta       `json:"meta,omitempty"`
+	}
+
+	Meta struct {
+		TotalCount int `json:"total_count"`
 	}
 )
 
@@ -110,14 +120,30 @@ func makeGetAllEndpoint(s Service) Controller {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		v := r.URL.Query()
-		users, err := s.GetAll(Filters{FirstName: v.Get("first_name"), LastName: v.Get("last_name")})
+
+		filters := Filters{
+			FirstName: v.Get("first_name"),
+			LastName:  v.Get("last_name"),
+		}
+
+		count, err := s.Count(filters)
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(&Response{Status: 500, Err: err.Error()})
+			return
+		}
+
+		users, err := s.GetAll(filters)
 		if err != nil {
 			w.WriteHeader(400)
 			json.NewEncoder(w).Encode(&Response{Status: 400, Err: err.Error()})
 			return
 		}
 
-		json.NewEncoder(w).Encode(&Response{Status: 200, Data: users})
+		meta := &Meta{
+			TotalCount: count,
+		}
+		json.NewEncoder(w).Encode(&Response{Status: 200, Data: users, Meta: meta})
 	}
 }
 

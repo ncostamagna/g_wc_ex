@@ -9,19 +9,21 @@ import (
 	"gorm.io/gorm"
 )
 
-//Repository is a Repository handler interface
-type Repository interface {
-	Create(user *User) error
-	GetAll(filters Filters) ([]User, error)
-	Get(id string) (*User, error)
-	Delete(id string) error
-	Update(id string, firstName *string, lastName *string, email *string, phone *string) error
-}
+type (
+	Repository interface {
+		Create(user *User) error
+		GetAll(filters Filters) ([]User, error)
+		Get(id string) (*User, error)
+		Delete(id string) error
+		Update(id string, firstName *string, lastName *string, email *string, phone *string) error
+		Count(filters Filters) (int, error)
+	}
 
-type repo struct {
-	db  *gorm.DB
-	log *log.Logger
-}
+	repo struct {
+		db  *gorm.DB
+		log *log.Logger
+	}
+)
 
 //NewRepo is a repositories handler
 func NewRepo(db *gorm.DB, l *log.Logger) Repository {
@@ -103,6 +105,17 @@ func (r *repo) Update(id string, firstName *string, lastName *string, email *str
 	}
 
 	return nil
+}
+
+func (r *repo) Count(filters Filters) (int, error) {
+	var count int64
+	tx := r.db.Model(User{})
+	tx = applyFilters(tx, filters)
+	if err := tx.Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
 }
 
 func applyFilters(tx *gorm.DB, filters Filters) *gorm.DB {
