@@ -1,17 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/ncostamagna/g_wc_ex/internal/user"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"github.com/ncostamagna/g_wc_ex/pkg/bootstrap"
 )
 
 func main() {
@@ -19,30 +16,11 @@ func main() {
 	router := mux.NewRouter()
 	_ = godotenv.Load()
 	// sin archivo y sin prefijo
-	l := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
-
-	dsn := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		os.Getenv("DATABASE_USER"),
-		os.Getenv("DATABASE_PASSWORD"),
-		os.Getenv("DATABASE_HOST"),
-		os.Getenv("DATABASE_PORT"),
-		os.Getenv("DATABASE_NAME"))
-
-	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	/*
-		if err != nil {
-			return nil, "", l.CatchError(err)
-		}*/
-
-	if os.Getenv("DATABASE_DEBUG") == "true" {
-		db = db.Debug()
+	l := bootstrap.InitLogger()
+	db, err := bootstrap.DBConnection()
+	if err != nil {
+		l.Fatal(err)
 	}
-
-	if os.Getenv("DATABASE_MIGRATE") == "true" {
-		_ = db.AutoMigrate(&user.User{})
-	}
-
 	userRepo := user.NewRepo(db, l)
 	userSrv := user.NewService(l, userRepo)
 	userEnd := user.MakeEndpoints(userSrv)
