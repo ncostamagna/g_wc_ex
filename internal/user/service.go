@@ -41,10 +41,10 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 		Email:     email,
 		Phone:     phone,
 	}
-	s.log.Println("Create user service")
 
 	if err := s.repo.Create(user); err != nil {
 		s.log.Println(err)
+		return nil, err
 	}
 
 	return user, nil
@@ -54,6 +54,7 @@ func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
 
 	users, err := s.repo.GetAll(filters, offset, limit)
 	if err != nil {
+		s.log.Println(err)
 		return nil, err
 	}
 	return users, nil
@@ -62,6 +63,7 @@ func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
 func (s service) Get(id string) (*User, error) {
 	user, err := s.repo.Get(id)
 	if err != nil {
+		s.log.Println(err)
 		return nil, err
 	}
 	return user, nil
