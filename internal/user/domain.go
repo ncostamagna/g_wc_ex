@@ -14,7 +14,7 @@ type User struct {
 	Email     string         `json:"email" gorm:"type:char(50)"`
 	Phone     string         `json:"phone" gorm:"type:char(30)"`
 	CreatedAt *time.Time     `json:"-"`
-	UpdateAt  *time.Time     `json:"-"`
+	UpdatedAt *time.Time     `json:"-"`
 	Deleted   gorm.DeletedAt `json:"-"`
 }
 
