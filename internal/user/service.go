@@ -2,6 +2,8 @@ package user
 
 import (
 	"log"
+
+	"github.com/ncostamagna/g_wc_ex/internal/domain"
 )
 
 type (
@@ -11,9 +13,9 @@ type (
 	}
 
 	Service interface {
-		Create(firstName, lastName, email, phone string) (*User, error)
-		Get(id string) (*User, error)
-		GetAll(filters Filters, offset, limit int) ([]User, error)
+		Create(firstName, lastName, email, phone string) (*domain.User, error)
+		Get(id string) (*domain.User, error)
+		GetAll(filters Filters, offset, limit int) ([]domain.User, error)
 		Delete(id string) error
 		Update(id string, firstName *string, lastName *string, email *string, phone *string) error
 		Count(filters Filters) (int, error)
@@ -34,8 +36,8 @@ func NewService(l *log.Logger, repo Repository) Service {
 }
 
 //Create service
-func (s service) Create(firstName, lastName, email, phone string) (*User, error) {
-	user := &User{
+func (s service) Create(firstName, lastName, email, phone string) (*domain.User, error) {
+	user := &domain.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
@@ -50,7 +52,7 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 	return user, nil
 }
 
-func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
+func (s service) GetAll(filters Filters, offset, limit int) ([]domain.User, error) {
 
 	users, err := s.repo.GetAll(filters, offset, limit)
 	if err != nil {
@@ -60,7 +62,7 @@ func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
 	return users, nil
 }
 
-func (s service) Get(id string) (*User, error) {
+func (s service) Get(id string) (*domain.User, error) {
 	user, err := s.repo.Get(id)
 	if err != nil {
 		s.log.Println(err)

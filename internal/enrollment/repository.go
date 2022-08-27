@@ -3,12 +3,13 @@ package enrollment
 import (
 	"log"
 
+	"github.com/ncostamagna/g_wc_ex/internal/domain"
 	"gorm.io/gorm"
 )
 
 type (
 	Repository interface {
-		Create(enroll *Enrollment) error
+		Create(enroll *domain.Enrollment) error
 	}
 
 	repo struct {
@@ -24,7 +25,7 @@ func NewRepo(db *gorm.DB, l *log.Logger) Repository {
 	}
 }
 
-func (r *repo) Create(enroll *Enrollment) error {
+func (r *repo) Create(enroll *domain.Enrollment) error {
 
 	if err := r.db.Create(enroll).Error; err != nil {
 		r.log.Printf("error: %v", err)

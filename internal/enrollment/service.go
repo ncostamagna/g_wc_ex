@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/ncostamagna/g_wc_ex/internal/course"
+	"github.com/ncostamagna/g_wc_ex/internal/domain"
 	"github.com/ncostamagna/g_wc_ex/internal/user"
 )
 
@@ -15,7 +16,7 @@ type (
 	}
 
 	Service interface {
-		Create(userID, courseID string) (*Enrollment, error)
+		Create(userID, courseID string) (*domain.Enrollment, error)
 	}
 
 	service struct {
@@ -35,9 +36,9 @@ func NewService(l *log.Logger, userRepo user.Service, courseRepo course.Service,
 	}
 }
 
-func (s service) Create(userID, courseID string) (*Enrollment, error) {
+func (s service) Create(userID, courseID string) (*domain.Enrollment, error) {
 
-	enroll := &Enrollment{
+	enroll := &domain.Enrollment{
 		UserID:   userID,
 		CourseID: courseID,
 		Status:   "P",

@@ -5,10 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ncostamagna/g_wc_ex/internal/course"
-	"github.com/ncostamagna/g_wc_ex/internal/enrollment"
-	"github.com/ncostamagna/g_wc_ex/internal/user"
-
+	"github.com/ncostamagna/g_wc_ex/internal/domain"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -32,15 +29,15 @@ func DBConnection() (*gorm.DB, error) {
 	}
 
 	if os.Getenv("DATABASE_MIGRATE") == "true" {
-		if err := db.AutoMigrate(&user.User{}); err != nil {
+		if err := db.AutoMigrate(&domain.User{}); err != nil {
 			return nil, err
 		}
 
-		if err := db.AutoMigrate(&course.Course{}); err != nil {
+		if err := db.AutoMigrate(&domain.Course{}); err != nil {
 			return nil, err
 		}
 
-		if err := db.AutoMigrate(&enrollment.Enrollment{}); err != nil {
+		if err := db.AutoMigrate(&domain.Enrollment{}); err != nil {
 			return nil, err
 		}
 	}
