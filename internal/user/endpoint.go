@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/ncostamagna/g_wc_ex/pkg/meta"
+	"github.com/ncostamagna/g_ms_client/meta"
 )
 
 //Endpoints struct
