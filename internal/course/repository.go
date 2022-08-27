@@ -1,7 +1,10 @@
 package course
 
 import (
+	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -9,6 +12,11 @@ import (
 type (
 	Repository interface {
 		Create(course *Course) error
+		GetAll(filters Filters, offset, limit int) ([]Course, error)
+		Get(id string) (*Course, error)
+		Delete(id string) error
+		Update(id string, name *string, startDate, endDate *time.Time) error
+		Count(filters Filters) (int, error)
 	}
 
 	repo struct {
@@ -34,4 +42,84 @@ func (r *repo) Create(course *Course) error {
 
 	r.log.Println("course created with id: ", course.ID)
 	return nil
+}
+
+func (r *repo) GetAll(filters Filters, offset, limit int) ([]Course, error) {
+	var c []Course
+
+	tx := r.db.Model(&c)
+	tx = applyFilters(tx, filters)
+	tx = tx.Limit(limit).Offset(offset)
+	result := tx.Order("created_at desc").Find(&c)
+
+	fmt.Println(c)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return c, nil
+}
+
+func (r *repo) Get(id string) (*Course, error) {
+	course := Course{ID: id}
+	result := r.db.First(&course)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &course, nil
+}
+
+func (r *repo) Delete(id string) error {
+	course := Course{ID: id}
+	result := r.db.Delete(&course)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+// PATCH vs PUT
+func (r *repo) Update(id string, name *string, startDate, endDate *time.Time) error {
+
+	values := make(map[string]interface{})
+
+	if name != nil {
+		values["name"] = *name
+	}
+
+	if startDate != nil {
+		values["start_date"] = *startDate
+	}
+
+	if endDate != nil {
+		values["end_date"] = *endDate
+	}
+
+	if err := r.db.Model(&Course{}).Where("id = ?", id).Updates(values); err.Error != nil {
+		return err.Error
+	}
+
+	return nil
+}
+
+func (r *repo) Count(filters Filters) (int, error) {
+	var count int64
+	tx := r.db.Model(Course{})
+	tx = applyFilters(tx, filters)
+	if err := tx.Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
+func applyFilters(tx *gorm.DB, filters Filters) *gorm.DB {
+
+	if filters.Name != "" {
+		filters.Name = fmt.Sprintf("%%%s%%", strings.ToLower(filters.Name))
+		tx = tx.Where("lower(name) like ?", filters.Name)
+	}
+
+	return tx
 }

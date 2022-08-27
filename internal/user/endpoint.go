@@ -41,10 +41,6 @@ type (
 		Phone     *string `json:"phone"`
 	}
 
-	ErrorRes struct {
-		Error string `json:"error"`
-	}
-
 	Response struct {
 		Status int         `json:"status"`
 		Data   interface{} `json:"data,omitempty"`
