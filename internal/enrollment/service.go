@@ -1,7 +1,11 @@
 package enrollment
 
 import (
+	"errors"
 	"log"
+
+	"github.com/ncostamagna/g_wc_ex/internal/course"
+	"github.com/ncostamagna/g_wc_ex/internal/user"
 )
 
 type (
@@ -15,15 +19,19 @@ type (
 	}
 
 	service struct {
-		log  *log.Logger
-		repo Repository
+		log        *log.Logger
+		userRepo   user.Service
+		courseRepo course.Service
+		repo       Repository
 	}
 )
 
-func NewService(l *log.Logger, repo Repository) Service {
+func NewService(l *log.Logger, userRepo user.Service, courseRepo course.Service, repo Repository) Service {
 	return &service{
-		log:  l,
-		repo: repo,
+		log:        l,
+		userRepo:   userRepo,
+		courseRepo: courseRepo,
+		repo:       repo,
 	}
 }
 
@@ -33,6 +41,14 @@ func (s service) Create(userID, courseID string) (*Enrollment, error) {
 		UserID:   userID,
 		CourseID: courseID,
 		Status:   "P",
+	}
+
+	if _, err := s.userRepo.Get(enroll.UserID); err != nil {
+		return nil, errors.New("user id doesn't exists")
+	}
+
+	if _, err := s.courseRepo.Get(enroll.CourseID); err != nil {
+		return nil, errors.New("course id doesn't exists")
 	}
 
 	if err := s.repo.Create(enroll); err != nil {
