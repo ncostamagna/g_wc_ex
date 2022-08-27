@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/ncostamagna/g_wc_ex/internal/enrollment"
 	"github.com/ncostamagna/g_wc_ex/internal/user"
 	"github.com/ncostamagna/g_wc_ex/pkg/bootstrap"
 )
@@ -32,6 +33,10 @@ func main() {
 	courseSrv := course.NewService(l, courseRepo)
 	courseEnd := course.MakeEndpoints(courseSrv)
 
+	enrollRepo := enrollment.NewRepo(db, l)
+	enrollSrv := enrollment.NewService(l, enrollRepo)
+	enrollEnd := enrollment.MakeEndpoints(enrollSrv)
+
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")
 	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
 	router.HandleFunc("/users/{id}", userEnd.Get).Methods("GET")
@@ -43,6 +48,8 @@ func main() {
 	router.HandleFunc("/courses/{id}", courseEnd.Get).Methods("GET")
 	router.HandleFunc("/courses/{id}", courseEnd.Update).Methods("PATCH")
 	router.HandleFunc("/courses/{id}", courseEnd.Delete).Methods("DELETE")
+
+	router.HandleFunc("/enrollment", enrollEnd.Create).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      router,

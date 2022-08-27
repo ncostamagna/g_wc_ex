@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"github.com/ncostamagna/g_wc_ex/internal/course"
+	"github.com/ncostamagna/g_wc_ex/internal/enrollment"
 	"github.com/ncostamagna/g_wc_ex/internal/user"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -35,6 +37,10 @@ func DBConnection() (*gorm.DB, error) {
 		}
 
 		if err := db.AutoMigrate(&course.Course{}); err != nil {
+			return nil, err
+		}
+
+		if err := db.AutoMigrate(&enrollment.Enrollment{}); err != nil {
 			return nil, err
 		}
 	}
